@@ -252,8 +252,9 @@ func handleTZSP(data []byte) {
 
 	for len(data) > 0 && tagEnd == 0 {
 
+		log.Print("TZSP Tag: starting with data len: ", len(data), " tag end: ", tagEnd)
+
 		var tagType = TagType(data[0])
-		// var tagLength = data[1]
 
 		switch {
 
@@ -268,8 +269,14 @@ func handleTZSP(data []byte) {
 			log.Print("TZSP Tag: Skipping ", tagType)
 		}
 
-		data = data[1:]
+		if tagEnd == 0 {
 
+			var tagLength = data[1]
+			log.Print("TZSP Tag: Tag length ", tagLength)
+
+			data = data[tagLength+2:]
+			log.Print("TZSP Tag: Moving to ", tagLength, " data len: ", len(data), " tag end: ", tagEnd)
+		}
 	}
 
 	switch {
@@ -543,9 +550,6 @@ func handle80211(data []byte) {
 
 	Statistics.L2Processed += 1
 
-	l2_option := data[1]
-	l2_signal := data[2]
-	l2_signal := data[3]
 	l2_header := data[4:22]
 	// eth_data := data[14:]
 
