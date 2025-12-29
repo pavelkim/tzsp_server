@@ -1,4 +1,4 @@
-name: Release
+name: Release - Build and Deploy
 
 on:
   push:
@@ -39,6 +39,15 @@ jobs:
 
       - name: Run tests
         run: make test
+
+      - name: Debug - List directory structure
+        run: |
+          echo "=== Workspace contents ==="
+          ls -la
+          echo "=== cmd directory ==="
+          ls -la cmd/ || echo "cmd directory not found"
+          echo "=== PWD ==="
+          pwd
 
       - name: Build for Linux AMD64
         run: |

@@ -1,4 +1,4 @@
-name: Feature Branch Build
+name: CI - Feature Branch
 
 on:
   push:
