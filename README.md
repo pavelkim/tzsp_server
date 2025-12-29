@@ -12,18 +12,21 @@ A high-performance TZSP (TaZmen Sniffer Protocol) server implementation in Go th
 - Structured logging with packet metadata
 - Configuration file in YAML
 
-## Build
+## Build and Run
 
 ```bash
 make deps      # Download dependencies
 make build     # Build for current platform
 ```
 
-or
-
 ```bash
-go build -o tzsp_server ./cmd/tzsp_server
+# Run with default config
+./tzsp_server
+
+# Run with custom config
+./tzsp_server -config /path/to/config.yaml
 ```
+
 
 ## Configuration
 
@@ -94,37 +97,75 @@ output:
     ignore_http_errors: true
 
 logging:
-  # Application log level: debug, info, warn, error
-  level: "info"
-  # Application log format: text, json
-  format: "text"
-  # Enable console (stdout) logging for application logs
-  console_output: true
-  # Console log level: debug, info, warn, error
-  console_level: "info"
-  # Console log format: text, json (text recommended for console)
-  console_format: "text"
-
+  # File logging configuration
+  file:
+    # Enable file logging
+    enabled: true
+    # Log level: debug, info, warn, error
+    level: "info"
+    # Log format: text, json
+    format: "text"
+    # File path for application logs
+    path: "tzsp_server.log"
+  
+  # Console logging configuration
+  console:
+    # Enable console (stdout) logging
+    enabled: true
+    # Log level: debug, info, warn, error
+    level: "info"
+    # Log format: text, json (text recommended for console)
+    format: "text"
 ```
 
-## Usage
+## Usage examples
 
-```bash
-# Run with default config
-./tzsp_server
+### Mikrotik and Packet Sniffer
 
-# Run with custom config
-./tzsp_server -config /path/to/config.yaml
-```
+Configure the Packet Sniffer on your Mikrotik router to stream TZSP packets:
 
-## Mikrotik Configuration
-
-Configure your Mikrotik router to send TZSP packets:
-
-```
+```mikrotik
 /tool sniffer set streaming-enabled=yes streaming-server=<server_ip>:37008
 /tool sniffer start
 ```
+
+### Mikrotik firewall rule
+
+Configure firewall on your Mikrotik router to send TZSP packets:
+
+```mikrotik
+/ip firewall mangle
+add action=sniff-tzsp chain=prerouting disabled=yes sniff-target=<server_ip> sniff-target-port=37008 src-address=<source_device_ip>
+```
+
+### TZSP Server
+
+Configure the TZSP Server in `config.yaml`:
+
+```yaml
+server:
+  listen_addr: "0.0.0.0:37008"
+  buffer_size: 65536
+
+output:
+  file:
+    enabled: true
+    output_file: "packets.log"
+    format: "json"
+
+logging:
+  console:
+    enabled: true
+    level: "info"
+    format: "json"
+```
+
+Run the TZSP Server:
+
+```
+./tzsp_server
+```
+
 
 ## License
 

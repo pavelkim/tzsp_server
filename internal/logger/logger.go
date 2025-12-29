@@ -14,27 +14,78 @@ type Logger struct {
 	consoleEnabled bool
 }
 
+// FileConfig contains file logger configuration
+type FileConfig struct {
+	Enabled bool
+	Level   string
+	Format  string
+	Path    string
+}
+
+// ConsoleConfig contains console logger configuration
+type ConsoleConfig struct {
+	Enabled bool
+	Level   string
+	Format  string
+}
+
 // Config contains logger configuration
 type Config struct {
-	Level         string
-	Format        string
-	ConsoleOutput bool
-	ConsoleLevel  string
-	ConsoleFormat string
+	File    FileConfig
+	Console ConsoleConfig
 }
 
 // NewLogger creates a new application logger with multiple outputs
 func NewLogger(cfg *Config) (*Logger, error) {
 	l := &Logger{}
 
+	// Setup file logger if enabled
+	if cfg.File.Enabled && cfg.File.Path != "" {
+		fileLog := logrus.New()
+
+		// Set file log level
+		fileLvl := cfg.File.Level
+		if fileLvl == "" {
+			fileLvl = "info"
+		}
+		lvl, err := logrus.ParseLevel(fileLvl)
+		if err != nil {
+			lvl = logrus.InfoLevel
+		}
+		fileLog.SetLevel(lvl)
+
+		// Set file format
+		if cfg.File.Format == "json" {
+			fileLog.SetFormatter(&logrus.JSONFormatter{
+				TimestampFormat: "2006-01-02T15:04:05.000Z07:00",
+			})
+		} else {
+			fileLog.SetFormatter(&logrus.TextFormatter{
+				FullTimestamp:   true,
+				TimestampFormat: "2006-01-02 15:04:05",
+				DisableColors:   true,
+			})
+		}
+
+		// Open log file
+		logFile, err := os.OpenFile(cfg.File.Path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+		if err != nil {
+			return nil, err
+		}
+		fileLog.SetOutput(logFile)
+
+		l.fileLogger = fileLog
+		l.fileEnabled = true
+	}
+
 	// Setup console logger if enabled
-	if cfg.ConsoleOutput {
+	if cfg.Console.Enabled {
 		consoleLog := logrus.New()
 
 		// Set console log level
-		consoleLvl := cfg.ConsoleLevel
+		consoleLvl := cfg.Console.Level
 		if consoleLvl == "" {
-			consoleLvl = cfg.Level
+			consoleLvl = "info"
 		}
 		lvl, err := logrus.ParseLevel(consoleLvl)
 		if err != nil {
@@ -43,7 +94,7 @@ func NewLogger(cfg *Config) (*Logger, error) {
 		consoleLog.SetLevel(lvl)
 
 		// Set console format (default to text for readability)
-		consoleFormat := cfg.ConsoleFormat
+		consoleFormat := cfg.Console.Format
 		if consoleFormat == "" {
 			consoleFormat = "text"
 		}

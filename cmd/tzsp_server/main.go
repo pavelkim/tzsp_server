@@ -38,11 +38,17 @@ func main() {
 
 	// Initialize logger
 	log, err := logger.NewLogger(&logger.Config{
-		Level:         cfg.Logging.Level,
-		Format:        cfg.Logging.Format,
-		ConsoleOutput: cfg.Logging.ConsoleOutput,
-		ConsoleLevel:  cfg.Logging.ConsoleLevel,
-		ConsoleFormat: cfg.Logging.ConsoleFormat,
+		File: logger.FileConfig{
+			Enabled: cfg.Logging.File.Enabled,
+			Level:   cfg.Logging.File.Level,
+			Format:  cfg.Logging.File.Format,
+			Path:    cfg.Logging.File.Path,
+		},
+		Console: logger.ConsoleConfig{
+			Enabled: cfg.Logging.Console.Enabled,
+			Level:   cfg.Logging.Console.Level,
+			Format:  cfg.Logging.Console.Format,
+		},
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)

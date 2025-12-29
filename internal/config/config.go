@@ -70,13 +70,25 @@ type QingPingOutputConfig struct {
 	IgnoreHTTPErrors bool                 `yaml:"ignore_http_errors"`
 }
 
+// LoggingFileConfig contains file logging settings
+type LoggingFileConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	Level   string `yaml:"level"`
+	Format  string `yaml:"format"`
+	Path    string `yaml:"path"`
+}
+
+// LoggingConsoleConfig contains console logging settings
+type LoggingConsoleConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	Level   string `yaml:"level"`
+	Format  string `yaml:"format"`
+}
+
 // LoggingConfig contains application logging settings
 type LoggingConfig struct {
-	Level         string `yaml:"level"`
-	Format        string `yaml:"format"`
-	ConsoleOutput bool   `yaml:"console_output"`
-	ConsoleLevel  string `yaml:"console_level"`
-	ConsoleFormat string `yaml:"console_format"`
+	File    LoggingFileConfig    `yaml:"file"`
+	Console LoggingConsoleConfig `yaml:"console"`
 }
 
 // Load reads and parses the configuration file
