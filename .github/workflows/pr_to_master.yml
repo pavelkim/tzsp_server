@@ -1,0 +1,57 @@
+name: Go
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    name: Build PR to master
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.12
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      run: |
+        go get -v -t -d ./...
+        if [ -f Gopkg.toml ]; then
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+            dep ensure
+        fi
+
+    - name: Read out .version file
+      id: readversionfile
+      run: echo "::set-output name=desiredversion::$(cat .version)"
+
+    - name: Verify version
+      run: echo "${{steps.readversionfile.outputs.desiredversion}}"
+
+    - name: Get current timestamp
+      id: timestamp
+      run: echo "::set-output name=timestamp::$(date +'%FT%TZ')"
+
+    - name: Build
+      run: go build -ldflags="-X 'main.BuildVersion=${{steps.readversionfile.outputs.desiredversion}}'" -v .
+
+    - name: Verify binary file
+      run: md5sum tcp_socket_server
+
+    - name: Test
+      run: go test -v .
+
+    - name: Lookup planned tag
+      id: tagexists
+      run: |
+        echo "::set-output name=tagexists::$(curl -s -X GET -H 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' --url https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${{steps.readversionfile.outputs.desiredversion}} | jq .object.sha)"
+    
+    - name: Check if planned tag doesn't exist yet
+      run: if [[ "${{ steps.tagexists.outputs.tagexists }}" == "null" ]]; then exit 0; else exit 2; fi

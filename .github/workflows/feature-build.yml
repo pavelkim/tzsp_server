@@ -1,0 +1,84 @@
+name: Feature Branch Build
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!master'
+      - '!main'
+
+jobs:
+  build-and-upload:
+    name: Build and Upload Artifacts
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Download dependencies
+        run: make deps
+
+      - name: Run tests
+        run: make test
+
+      - name: Build for Linux AMD64
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w -X github.com/pavelkim/tzsp_server/internal/version.Version=${{ github.ref_name }}-${{ github.sha }}" -o tzsp_server-linux-amd64 ./cmd/tzsp_server
+
+      - name: Build for Linux ARM64
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w -X github.com/pavelkim/tzsp_server/internal/version.Version=${{ github.ref_name }}-${{ github.sha }}" -o tzsp_server-linux-arm64 ./cmd/tzsp_server
+
+      - name: Build for macOS AMD64
+        run: |
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w -X github.com/pavelkim/tzsp_server/internal/version.Version=${{ github.ref_name }}-${{ github.sha }}" -o tzsp_server-darwin-amd64 ./cmd/tzsp_server
+
+      - name: Build for macOS ARM64
+        run: |
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w -X github.com/pavelkim/tzsp_server/internal/version.Version=${{ github.ref_name }}-${{ github.sha }}" -o tzsp_server-darwin-arm64 ./cmd/tzsp_server
+
+      - name: Build for Windows AMD64
+        run: |
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w -X github.com/pavelkim/tzsp_server/internal/version.Version=${{ github.ref_name }}-${{ github.sha }}" -o tzsp_server-windows-amd64.exe ./cmd/tzsp_server
+
+      - name: Upload Linux AMD64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tzsp_server-linux-amd64
+          path: tzsp_server-linux-amd64
+          retention-days: 30
+
+      - name: Upload Linux ARM64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tzsp_server-linux-arm64
+          path: tzsp_server-linux-arm64
+          retention-days: 30
+
+      - name: Upload macOS AMD64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tzsp_server-darwin-amd64
+          path: tzsp_server-darwin-amd64
+          retention-days: 30
+
+      - name: Upload macOS ARM64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tzsp_server-darwin-arm64
+          path: tzsp_server-darwin-arm64
+          retention-days: 30
+
+      - name: Upload Windows AMD64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tzsp_server-windows-amd64
+          path: tzsp_server-windows-amd64.exe
+          retention-days: 30
