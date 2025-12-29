@@ -29,7 +29,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Load configuration
+	// Load configuration (uses defaults if file doesn't exist)
 	cfg, err := config.Load(*configPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load configuration: %v\n", err)

@@ -91,21 +91,51 @@ type LoggingConfig struct {
 	Console LoggingConsoleConfig `yaml:"console"`
 }
 
+// DefaultConfig returns a configuration with default values
+func DefaultConfig() *Config {
+	return &Config{
+		Server: ServerConfig{
+			ListenAddr: "0.0.0.0:37008",
+			BufferSize: 65536,
+		},
+		Output: OutputConfig{},
+		Logging: LoggingConfig{
+			Console: LoggingConsoleConfig{
+				Enabled: true,
+				Level:   "info",
+				Format:  "json",
+			},
+		},
+	}
+}
+
 // Load reads and parses the configuration file
+// If the file doesn't exist, returns default configuration
 func Load(path string) (*Config, error) {
+	// Check if file exists
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return DefaultConfig(), nil
+	}
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	var cfg Config
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
+	// Start with defaults
+	cfg := DefaultConfig()
+
+	// Override with values from file
+	if err := yaml.Unmarshal(data, cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
-	// Set defaults
+	// Apply additional defaults if not set
 	if cfg.Server.BufferSize == 0 {
 		cfg.Server.BufferSize = 65536
+	}
+	if cfg.Server.ListenAddr == "" {
+		cfg.Server.ListenAddr = "0.0.0.0:37008"
 	}
 	if cfg.Output.NetFlow.FlowTimeout == 0 {
 		cfg.Output.NetFlow.FlowTimeout = 60
@@ -114,5 +144,5 @@ func Load(path string) (*Config, error) {
 		cfg.Output.NetFlow.ActiveTimeout = 120
 	}
 
-	return &cfg, nil
+	return cfg, nil
 }
