@@ -77,7 +77,18 @@ jobs:
           sha256sum tzsp_server-darwin-arm64 >> checksums.txt
           sha256sum tzsp_server-windows-amd64.exe >> checksums.txt
 
-      - name: Create Release
+      - name: Upload artifacts (for non-tag builds)
+        if: startsWith(github.ref, 'refs/heads/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: tzsp_server-all-platforms
+          path: |
+            tzsp_server-*
+            checksums.txt
+          retention-days: 90
+
+      - name: Create Release (only for tags)
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           files: |
