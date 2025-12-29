@@ -160,12 +160,26 @@ logging:
     format: "json"
 ```
 
-Run the TZSP Server:
+Prepare directories for logs and data:
 
-```
-./tzsp_server
+```bash
+mkdir -pv ./logs ./data
 ```
 
+Run the TZSP Server in Docker:
+
+```bash
+docker run -d \
+  -ti \
+  --name tzsp_server \
+  --network host \
+  --restart unless-stopped \
+  -v "${pwd}/config.docker.yaml:/app/config.yaml:ro" \
+  -v "${pwd}/data:/app/data" \
+  -v "${pwd}/logs:/app/logs" \
+  -e TZ=UTC \
+  ghcr.io/pavelkim/tzsp_server:latest
+```
 
 ## License
 
