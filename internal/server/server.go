@@ -179,6 +179,14 @@ func (s *Server) processPacket(data []byte, sourceAddr string) error {
 		timestamp = *ts
 	}
 
+	// Always log incoming packet at debug level
+	s.logger.Debug("TZSP packet received",
+		"source", tzspPkt.SourceAddr,
+		"size", len(data),
+		"protocol", tzspPkt.ProtocolName(),
+		"timestamp", timestamp.Format(time.RFC3339Nano),
+	)
+
 	// Write to PCAP if enabled
 	if s.pcapWriter != nil {
 		if err := s.pcapWriter.WritePacket(tzspPkt.EncapPacket, timestamp); err != nil {

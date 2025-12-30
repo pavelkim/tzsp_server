@@ -147,11 +147,7 @@ server:
   listen_addr: "0.0.0.0:37008"
   buffer_size: 65536
 
-output:
-  file:
-    enabled: true
-    output_file: "packets.log"
-    format: "json"
+output: {}
 
 logging:
   console:
@@ -173,10 +169,9 @@ docker run -d \
   -ti \
   --name tzsp_server \
   --network host \
-  --restart unless-stopped \
-  -v "${pwd}/config.docker.yaml:/app/config.yaml:ro" \
-  -v "${pwd}/data:/app/data" \
-  -v "${pwd}/logs:/app/logs" \
+  -v "${PWD}/config.yaml:/app/config.yaml:ro" \
+  -v "${PWD}/data:/app/data" \
+  -v "${PWD}/logs:/app/logs" \
   -e TZ=UTC \
   ghcr.io/pavelkim/tzsp_server:latest
 ```
