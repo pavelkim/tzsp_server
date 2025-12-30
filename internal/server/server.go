@@ -135,12 +135,6 @@ func (s *Server) Start(ctx context.Context) error {
 
 			s.packetsReceived++
 
-			// Log first packet received
-			if s.packetsReceived == 1 {
-				s.logger.Info(">>> First TZSP packet received!",
-					"source", remoteAddr.String(),
-					"size", n)
-			}
 
 			// Process packet
 			if err := s.processPacket(buf[:n], remoteAddr.String()); err != nil {
