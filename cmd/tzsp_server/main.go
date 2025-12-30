@@ -37,31 +37,46 @@ func main() {
 	}
 
 	// Initialize logger
-	log, err := logger.NewLogger(&logger.Config{
-		File: logger.FileConfig{
-			Enabled: cfg.Logging.File.Enabled,
-			Level:   cfg.Logging.File.Level,
-			Format:  cfg.Logging.File.Format,
-			Path:    cfg.Logging.File.Path,
-		},
-		Console: logger.ConsoleConfig{
-			Enabled: cfg.Logging.Console.Enabled,
-			Level:   cfg.Logging.Console.Level,
-			Format:  cfg.Logging.Console.Format,
-		},
-	})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)
-		os.Exit(1)
-	}
 
-	log.Info("========================================")
-	log.Info("Starting TZSP Server", "version", version.GetVersion())
-	log.Info("========================================")
-	log.Info("Configuration loaded", "file", *configPath)
-	log.Info("Server settings",
-		"listen_addr", cfg.Server.ListenAddr,
-		"buffer_size", cfg.Server.BufferSize)
+	       logCfg := &logger.Config{
+		       File: logger.FileConfig{
+			       Enabled: cfg.Logging.File.Enabled,
+			       Level:   cfg.Logging.File.Level,
+			       Format:  cfg.Logging.File.Format,
+			       Path:    cfg.Logging.File.Path,
+		       },
+		       Console: logger.ConsoleConfig{
+			       Enabled: cfg.Logging.Console.Enabled,
+			       Level:   cfg.Logging.Console.Level,
+			       Format:  cfg.Logging.Console.Format,
+		       },
+	       }
+	       log, err := logger.NewLogger(logCfg)
+	       if err != nil {
+		       fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)
+		       os.Exit(1)
+	       }
+
+	       log.Info("========================================")
+	       log.Info("Starting TZSP Server", "version", version.GetVersion())
+	       log.Info("========================================")
+	       log.Info("Configuration loaded", "file", *configPath)
+	       log.Info("Server settings",
+		       "listen_addr", cfg.Server.ListenAddr,
+		       "buffer_size", cfg.Server.BufferSize)
+
+	       // Print enabled logging destinations
+	       if logCfg.Console.Enabled {
+		       log.Info("Logging destination: CONSOLE",
+			       "level", logCfg.Console.Level,
+			       "format", logCfg.Console.Format)
+	       }
+	       if logCfg.File.Enabled && logCfg.File.Path != "" {
+		       log.Info("Logging destination: FILE",
+			       "level", logCfg.File.Level,
+			       "format", logCfg.File.Format,
+			       "path", logCfg.File.Path)
+	       }
 
 	// Initialize file output for packet metadata if enabled
 	var fileWriter *output.FileWriter
